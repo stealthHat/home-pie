@@ -1,0 +1,167 @@
+---
+- name: Common role
+  hosts: pi
+  become: true
+  roles:
+    - common
+
+- name: Podman role
+  hosts: pi
+  become: true
+  roles:
+    - podman
+
+- name: Run containers
+  hosts: pi
+  tasks:
+    - name: Create jellyfin volume folders if not exist
+      ansible.builtin.file:
+        path: "jellyfin/{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - library
+        - tvshows
+        - movies
+
+    - name: Run jellyfin
+      containers.podman.podman_container:
+        name: jellyfin
+        image: cr.hotio.dev/hotio/jellyfin
+        state: started
+        restart_policy: always
+        ports:
+          - 8096:8096
+          - 7359:7359/udp
+        env:
+          TZ: America/Sao_Paulo
+          PUID: 1000
+          PGID: 1000
+          UMASK: 002
+        device:
+          - /dev/video10:/dev/video10
+          - /dev/video11:/dev/video11
+          - /dev/video12:/dev/video12
+        volume:
+          - "{{ home }}/jellyfin/library:/config"
+          - "{{ home }}/jellyfin/tvshows:/data/tvshows"
+          - "{{ home }}/jellyfin/movies:/data/movies"
+        generate_systemd:
+          names: jellyfin
+          restart_policy: always
+
+    - name: Create qbittorrent volume folders if not exist
+      ansible.builtin.file:
+        path: "qbittorrent/{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - config
+        - downloawds
+
+    - name: Run qbittorrent
+      containers.podman.podman_container:
+        name: qbittorrent
+        image: cr.hotio.dev/hotio/qbittorrent
+        state: started
+        restart_policy: always
+        ports:
+          - 8080:8080
+        env:
+          TZ: America/Sao_Paulo
+          PUID: 1000
+          PGID: 1000
+          UMASK: 002
+        volume:
+          - "{{ home }}/qbittorrent/config:/config"
+          - "{{ home }}/jellyfin/tvshows:/downloawds"
+        generate_systemd:
+          names: qbittorrent
+          restart_policy: always
+
+    - name: Create radarr volume folders if not exist
+      ansible.builtin.file:
+        path: "radarr/{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - config
+        - downloadclient-downloads
+
+    - name: Run radarr
+      containers.podman.podman_container:
+        name: radarr
+        image: cr.hotio.dev/hotio/radarr
+        state: started
+        restart_policy: always
+        ports:
+          - 7878:7878
+        env:
+          TZ: America/Sao_Paulo
+          PUID: 1000
+          PGID: 1000
+          UMASK: 002
+        volume:
+          - "{{ home }}/radarr/config:/config"
+          - "{{ home }}/radarr/downloadclient-downloads:/downloads"
+          - "{{ home }}/jellyfin/movies:/movies"
+        generate_systemd:
+          names: radarr
+          restart_policy: always
+
+    - name: Create sonarr volume folders if not exist
+      ansible.builtin.file:
+        path: "sonarr/{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - config
+        - downloadclient-downloads
+
+    - name: Run sonarr
+      containers.podman.podman_container:
+        name: sonarr
+        image: cr.hotio.dev/hotio/sonarr
+        state: started
+        restart_policy: always
+        ports:
+          - 8989:8989
+        env:
+          TZ: America/Sao_Paulo
+          PUID: 1000
+          PGID: 1000
+          UMASK: 002
+        volume:
+          - "{{ home }}/sonarr/config:/config"
+          - "{{ home }}/sonarr/downloadclient-downloads:/downloads"
+          - "{{ home }}/jellyfin/tvshows:/tv"
+        generate_systemd:
+          names: sonarr
+          restart_policy: always
+
+    - name: Create prowlarr volume folders if not exist
+      ansible.builtin.file:
+        path: "prowlarr/{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - config
+
+    - name: Run prowlarr
+      containers.podman.podman_container:
+        name: prowlarr
+        image: cr.hotio.dev/hotio/prowlarr:nightly
+        state: started
+        restart_policy: always
+        ports:
+          - 9696:9696
+        env:
+          TZ: America/Sao_Paulo
+          PUID: 1000
+          PGID: 1000
+          UMASK: 002
+        volume:
+          - "{{ home }}/prowlarr/config:/config"
+        generate_systemd:
+          names: prowlarr
+          restart_policy: always

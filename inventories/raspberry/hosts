@@ -1,0 +1,2 @@
+[pi]
+pie ansible_host=192.168.15.52 ansible_user=alarm

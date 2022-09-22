@@ -1,0 +1,9 @@
+---
+- name: Update locale.conf
+  ansible.builtin.command: localectl set-locale LANG=en_US.UTF-8
+
+- name: Update vconsole.conf
+  ansible.builtin.command: echo "KEYMAP=br-abnt2" >> /etc/vconsole.conf
+
+- name: Reboot the server
+  ansible.builtin.reboot:

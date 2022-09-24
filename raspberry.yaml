@@ -1,18 +1,18 @@
 ---
-- name: Common role
-  hosts: pi
-  become: true
-  roles:
-    - common
-
-- name: Podman role
-  hosts: pi
-  become: true
-  roles:
-    - podman
-
+#- name: Common role
+#  hosts: pi
+#  become: true
+#  roles:
+#    - common
+#
+#- name: Podman role
+#  hosts: pi
+#  become: true
+#  roles:
+#    - podman
+#
 - name: Run containers
-  hosts: pi
+  hosts: all
   tasks:
     - name: Create jellyfin volume folders if not exist
       ansible.builtin.file:
@@ -27,7 +27,7 @@
     - name: Run jellyfin
       containers.podman.podman_container:
         name: jellyfin
-        image: cr.hotio.dev/hotio/jellyfin
+        image: lscr.io/linuxserver/jellyfin:latest
         state: started
         restart_policy: always
         ports:
@@ -38,10 +38,6 @@
           PUID: 1000
           PGID: 1000
           UMASK: 002
-        device:
-          - /dev/video10:/dev/video10
-          - /dev/video11:/dev/video11
-          - /dev/video12:/dev/video12
         volume:
           - "{{ home }}/jellyfin/library:/config"
           - "{{ home }}/jellyfin/tvshows:/data/tvshows"
@@ -57,12 +53,12 @@
         mode: 0755
       loop:
         - config
-        - downloawds
+        - downloads
 
     - name: Run qbittorrent
       containers.podman.podman_container:
         name: qbittorrent
-        image: cr.hotio.dev/hotio/qbittorrent
+        image: lscr.io/linuxserver/qbittorrent:latest
         state: started
         restart_policy: always
         ports:
@@ -74,7 +70,7 @@
           UMASK: 002
         volume:
           - "{{ home }}/qbittorrent/config:/config"
-          - "{{ home }}/jellyfin/tvshows:/downloawds"
+          - "{{ home }}/qbittorrent/downloads:/downloads"
         generate_systemd:
           names: qbittorrent
           restart_policy: always
@@ -91,7 +87,7 @@
     - name: Run radarr
       containers.podman.podman_container:
         name: radarr
-        image: cr.hotio.dev/hotio/radarr
+        image: lscr.io/linuxserver/radarr:latest
         state: started
         restart_policy: always
         ports:
@@ -121,7 +117,7 @@
     - name: Run sonarr
       containers.podman.podman_container:
         name: sonarr
-        image: cr.hotio.dev/hotio/sonarr
+        image: lscr.io/linuxserver/sonarr:latest
         state: started
         restart_policy: always
         ports:
@@ -150,7 +146,7 @@
     - name: Run prowlarr
       containers.podman.podman_container:
         name: prowlarr
-        image: cr.hotio.dev/hotio/prowlarr:nightly
+        image: lscr.io/linuxserver/prowlarr:develop
         state: started
         restart_policy: always
         ports:

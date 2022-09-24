@@ -1,26 +1,29 @@
 ---
-- name: Ensure /etc/containers exists
-  become: true
-  become_user: root
-  file:
-    state: directory
-    path: /etc/containers
-
 - name: Install podman
   community.general.pacman:
-    name: "podman"
+    name: "{{ item }}"
     state: "present"
   loop:
     - podman
     - buildah
     - cni-plugins
-    -	slirp4netns
-    -	fuse-overlayfs
+    - fuse-overlayfs
+  notify: Start podman service
 
-- name: systemctl start podman.service
-  ansible.builtin.service:
-    name: "podman.service"
-    state: "started"
-    enabled: true
-  changed_when: false
-  failed_when: false
+# https://github.com/ansible/ansible/pull/73741
+- name: Creating subuid and subgid file
+  ansible.builtin.file:
+    path: "/etc/{{ item }}"
+    state: touch
+    mode: 0644
+  loop:
+    - subuid
+    - subgid
+
+- name: Populate subuid and subgid file
+  ansible.builtin.lineinfile:
+    path: "/etc/{{ item }}"
+    line: "{{ ansible_user }}:100000:65536"
+  loop:
+    - subuid
+    - subgid

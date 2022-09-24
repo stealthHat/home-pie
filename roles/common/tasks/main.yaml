@@ -2,28 +2,31 @@
 - name: Set timezone to America/Sao_Paulo
   community.general.timezone:
     name: America/Sao_Paulo
-  notify: Update clock
+  notify:
+    - Update locale.conf
+    - Update vconsole.conf
 
 - name: Ensure a locale exists
   community.general.locale_gen:
     name: en_US.UTF-8
     state: present
-  notify:
-    - Update locale.conf
-    - Update vconsole.conf
 
-- name: Set hostname to inventory hostname.
+- name: Set hostname to inventory hostname
   ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
 
-- name: Set hosts file
+- name: Pacman config
   ansible.builtin.lineinfile:
-    path: /etc/hosts
-    state: present
-    regexp: "^{{ ansible_default_ipv4.address }}"
-    line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }} {{ ansible_hostname }}"
+    dest: /etc/pacman.conf
+    regexp: '^#{{ item }}'
+    line: "{{ item }}"
+  loop:
+    - "Color"
+    - "VerbosePkgLists"
+    - "ILoveCandy"
+    - "ParallelDownloads = 5"
 
-- name: Upgrade all software.
+- name: Upgrade all software
   community.general.pacman:
     update_cache: true
     upgrade: true

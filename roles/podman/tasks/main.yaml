@@ -1,15 +1,4 @@
 ---
-- name: Install podman
-  community.general.pacman:
-    name: "{{ item }}"
-    state: "present"
-  loop:
-    - podman
-    - buildah
-    - cni-plugins
-    - fuse-overlayfs
-  notify: Start podman service
-
 # https://github.com/ansible/ansible/pull/73741
 - name: Creating subuid and subgid file
   ansible.builtin.file:
@@ -27,3 +16,13 @@
   loop:
     - subuid
     - subgid
+
+- name: Install podman
+  community.general.pacman:
+    name: "{{ item }}"
+    state: "present"
+  loop:
+    - podman
+    - buildah
+    - cni-plugins
+    - fuse-overlayfs

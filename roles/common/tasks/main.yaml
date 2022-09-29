@@ -15,10 +15,18 @@
   ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
 
+- name: Generate /etc/hosts file
+  ansible.builtin.template:
+    src: etc/hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Pacman config
   ansible.builtin.lineinfile:
-    dest: /etc/pacman.conf
-    regexp: '^#{{ item }}'
+    path: /etc/pacman.conf
+    regexp: "^#{{ item }}"
     line: "{{ item }}"
   loop:
     - "Color"

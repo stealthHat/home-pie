@@ -1,0 +1,150 @@
+- name: Create volumes folders structure if not exist
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: a=,a+rX,u+w,g+w
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    recurse: true
+  loop:
+    - /data/torrents/movies
+    - /data/torrents/tv
+    - /data/media/movies
+    - /data/media/tv
+    - /podman/appdata/radarr
+    - /podman/appdata/sonarr
+    - /podman/appdata/prowlarr
+    - /podman/appdata/bazarr
+    - /podman/appdata/qbittorrent
+    - /podman/appdata/jellyfin
+
+- name: Podman unshare chown
+  ansible.builtin.command: podman unshare chown -R 1000:1000 /data /podman
+
+- name: Run jellyfin
+  containers.podman.podman_container:
+    name: jellyfin
+    image: cr.hotio.dev/hotio/jellyfin:latest
+    state: started
+    restart_policy: always
+    network_mode: bridge
+    ports:
+      - 8096:8096
+      - 7359:7359/udp
+    env:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    volume:
+      - /podman/appdata/jellyfin:/config
+      - /data/media/tv:/data/tvshows
+      - /data/media/movies:/data/movies
+    generate_systemd:
+      container_prefix: jellyfin
+      path: /etc/systemd/system
+      restart_policy: always
+
+- name: Run radarr
+  containers.podman.podman_container:
+    name: radarr
+    image: cr.hotio.dev/hotio/radarr:latest
+    state: started
+    restart_policy: always
+    network_mode: bridge
+    ports:
+      - 7878:7878
+    env:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    volume:
+      - /podman/appdata/radarr:/config
+      - /data:/data
+    generate_systemd:
+      container_prefix: radarr
+      path: /etc/systemd/system
+      restart_policy: always
+
+- name: Run sonarr
+  containers.podman.podman_container:
+    name: sonarr
+    image: cr.hotio.dev/hotio/sonarr:latest
+    state: started
+    restart_policy: always
+    network_mode: bridge
+    ports:
+      - 8989:8989
+    env:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    volume:
+      - /podman/appdata/sonarr:/config
+      - /data:/data
+    generate_systemd:
+      container_prefix: sonarr
+      path: /etc/systemd/system
+      restart_policy: always
+
+- name: Run bazarr
+  containers.podman.podman_container:
+    name: bazarr
+    image: cr.hotio.dev/hotio/bazarr:latest
+    state: started
+    restart_policy: always
+    network_mode: bridge
+    ports:
+      - 6767:6767
+    env:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    volume:
+      - /podman/appdata/bazarr:/config
+      - /data/media:/data/media
+    generate_systemd:
+      container_prefix: bazarr
+      path: /etc/systemd/system
+      restart_policy: always
+
+- name: Run prowlarr
+  containers.podman.podman_container:
+    name: prowlarr
+    image: cr.hotio.dev/hotio/prowlarr:nightly
+    state: started
+    restart_policy: always
+    network_mode: bridge
+    ports:
+      - 9696:9696
+    env:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    volume:
+      - /podman/appdata/prowlarr:/config
+    generate_systemd:
+      container_prefix: prowlarr
+      path: /etc/systemd/system
+      restart_policy: always
+
+- name: Run qbittorrent
+  containers.podman.podman_container:
+    name: qbittorrent
+    image: cr.hotio.dev/hotio/qbittorrent:latest
+    state: started
+    restart_policy: always
+    network_mode: bridge
+    ports:
+      - 8080:8080
+    env:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    volume:
+      - /podman/appdata/qbittorrent:/config
+      - /data/torrents:/data/torrents:rw
+    generate_systemd:
+      container_prefix: qbittorrent
+      path: /etc/systemd/system
+      restart_policy: always

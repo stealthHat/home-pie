@@ -1,8 +1,1 @@
 ---
-- name: Start podman service
-  ansible.builtin.service:
-    name: "podman.service"
-    state: "started"
-    enabled: true
-  changed_when: false
-  failed_when: false

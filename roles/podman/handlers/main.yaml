@@ -4,4 +4,3 @@
     name: podman.socket
     state: started
     enabled: true
-    daemon_reload: true

@@ -1,10 +1,6 @@
 ---
-- name: Podman unshare
-  ansible.builtin.command: podman unshare chown -R 1000:1000 {{ home }}/data
-
 - name: Enable pod-rr.service
   ansible.builtin.systemd:
     name: pod-rr.service
-    state: started
     scope: user
     enabled: true

@@ -17,6 +17,16 @@
     - subuid
     - subgid
 
+- name: Check if lingering is enabled
+  ansible.builtin.stat:
+    path: "/var/lib/systemd/linger/{{ ansible_user }}"
+  register: linger
+
+- name: Enable lingering
+  ansible.builtin.command: "loginctl enable-linger {{ ansible_user }}"
+  when:
+    - not linger.stat.exists
+
 - name: Install podman
   community.general.pacman:
     name: "{{ item }}"

@@ -12,10 +12,12 @@
     - appdata/bazarr
     - appdata/qbittorrent
     - appdata/jellyfin
-  notify: Podman unshare
+  register: folders
 
-- name: Force all notified handlers to run at this point, not waiting for normal sync points
-  ansible.builtin.meta: flush_handlers
+- name: Podman unshare
+  ansible.builtin.command: podman unshare chown -R 1000:1000 {{ home }}/data
+  when:
+    - folders.changed
 
 - name: Create pod for containers
   containers.podman.podman_pod:
@@ -116,7 +118,6 @@
       - 9696:9696 # prowlarr
       - 8080:8080 # qbittorrent
     generate_systemd:
-      new: true
       restart_policy: always
       path:
         "{{ home }}/.config/systemd/user"

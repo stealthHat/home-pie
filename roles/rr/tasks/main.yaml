@@ -10,7 +10,7 @@
     - appdata/sonarr
     - appdata/prowlarr
     - appdata/bazarr
-    - appdata/rutorrent
+    - appdata/qbittorrent
     - appdata/jellyfin
   notify: Podman unshare
 
@@ -28,7 +28,7 @@
       - 8989:8989 # sonarr
       - 6767:6767 # bazarr
       - 9696:9696 # prowlarr
-      - 8080:80 # rutorrent
+      - 8080:8080 # qbittorrent
   notify: Enable pod-rr.service
 
 - name: Run jellyfin
@@ -36,6 +36,7 @@
     pod: rr
     name: jellyfin
     image: cr.hotio.dev/hotio/jellyfin:latest
+    restart_policy: always
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -48,6 +49,7 @@
     pod: rr
     name: radarr
     image: cr.hotio.dev/hotio/radarr:latest
+    restart_policy: always
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -59,6 +61,7 @@
     pod: rr
     name: sonarr
     image: cr.hotio.dev/hotio/sonarr:latest
+    restart_policy: always
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -70,6 +73,7 @@
     pod: rr
     name: bazarr
     image: cr.hotio.dev/hotio/bazarr:latest
+    restart_policy: always
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -81,20 +85,22 @@
     pod: rr
     name: prowlarr
     image: cr.hotio.dev/hotio/prowlarr:nightly
+    restart_policy: always
     env:
       TZ: America/Sao_Paulo
     volume:
       - "{{ home }}/appdata/prowlarr:/config"
 
-- name: Run rutorrent
+- name: Run qbittorrent
   containers.podman.podman_container:
     pod: rr
-    name: rutorrent
-    image: ghcr.io/linuxserver/rutorrent:latest
+    name: qbittorrent
+    image: cr.hotio.dev/hotio/qbittorrent:latest
+    restart_policy: always
     env:
       TZ: America/Sao_Paulo
     volume:
-      - "{{ home }}/appdata/rutorrent:/config"
+      - "{{ home }}/appdata/qbittorrent:/config"
       - "{{ home }}/data/torrents:/data/torrents"
 
 - name: Create systemd file for pod and containers
@@ -108,8 +114,9 @@
       - 8989:8989 # sonarr
       - 6767:6767 # bazarr
       - 9696:9696 # prowlarr
-      - 8080:80 # rutorrent
+      - 8080:8080 # qbittorrent
     generate_systemd:
       new: true
+      restart_policy: always
       path:
         "{{ home }}/.config/systemd/user"

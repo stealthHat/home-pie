@@ -31,7 +31,6 @@
   loop:
     - "Color"
     - "VerbosePkgLists"
-    - "ILoveCandy"
     - "ParallelDownloads = 5"
 
 - name: Upgrade all software

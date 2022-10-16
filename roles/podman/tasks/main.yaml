@@ -26,4 +26,6 @@
     - buildah
     - cni-plugins
     - fuse-overlayfs
-  notify: Enable podman.socket
+  notify:
+    - Enable podman.socket
+    - Reboot the server

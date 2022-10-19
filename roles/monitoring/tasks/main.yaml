@@ -1,0 +1,97 @@
+---
+- name: Create volumes folders structure if not exist
+  ansible.builtin.file:
+    path: "{{ home }}/{{ item }}"
+    state: directory
+  loop:
+    - monitoring
+    - appdata/grafana
+    - appdata/prometheus
+  register: folders
+
+- name: Podman unshare
+  ansible.builtin.command: podman unshare chown -R 472:472 {{ home }}/appdata/{{ item }}
+  loop:
+    - grafana
+    - prometheus
+  when:
+    - folders.changed
+
+- name: Create prometheus.yaml
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ home }}/monitoring/{{ item.dest }}"
+    mode: 0644
+  loop:
+    - { src: "prometheus/prometheus.j2", dest: "prometheus.yml" }
+    - { src: "grafana/grafana.j2", dest: "grafana.ini" }
+
+- name: Create pod for containers
+  containers.podman.podman_pod:
+    name: monitoring
+    infra_name: monitoring-infra
+    ports:
+      - 9090:9090 # prometheus
+      - 3000:3000 # grafana
+      - 9100:9100 # node-exporter
+      - 8081:8080 # node-exporter
+  notify: Enable pod-monitoring.service
+
+- name: Run prometheus
+  containers.podman.podman_container:
+    pod: monitoring
+    name: prometheus
+    image: docker.io/prom/prometheus:latest
+    restart_policy: always
+    volume:
+      - "{{ home }}/appdata/prometheus:/prometheus"
+      - "{{ home }}/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml"
+
+- name: Run grafana
+  containers.podman.podman_container:
+    pod: monitoring
+    name: grafana
+    image: docker.io/grafana/grafana-oss:latest
+    restart_policy: always
+    volumes:
+      - "{{ home }}/appdata/grafana:/var/lib/grafana"
+      - "{{ home }}/monitoring/grafana.ini:/etc/grafana/grafana.ini"
+
+- name: Run node-exporter
+  containers.podman.podman_container:
+    pod: monitoring
+    name: node-exporter
+    image: docker.io/prom/node-exporter:latest
+    restart_policy: always
+    command: "--path.rootfs=/host"
+    volumes:
+      - "/:/host:ro,rslave"
+
+# https://github.com/google/cadvisor/issues/2424
+- name: Run cadvisor
+  containers.podman.podman_container:
+    pod: monitoring
+    name: cadvisor
+    image: docker.io/zcube/cadvisor:latest
+    restart_policy: always
+    privileged: true
+    device: /dev/kmsg
+    volume:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/containers:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+
+- name: Create pod for containers
+  containers.podman.podman_pod:
+    name: monitoring
+    infra_name: monitoring-infra
+    ports:
+      - 9090:9090 # prometheus
+      - 3000:3000 # grafana
+      - 9100:9100 # node-exporter
+      - 8081:8080 # node-exporter
+    generate_systemd:
+      restart_policy: always
+      path: "{{ home }}/.config/systemd/user"

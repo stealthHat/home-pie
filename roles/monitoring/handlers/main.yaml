@@ -1,0 +1,6 @@
+---
+- name: Enable pod-monitoring.service
+  ansible.builtin.systemd:
+    name: pod-monitoring.service
+    scope: user
+    enabled: true

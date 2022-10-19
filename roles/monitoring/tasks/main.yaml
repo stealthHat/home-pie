@@ -10,10 +10,10 @@
   register: folders
 
 - name: Podman unshare
-  ansible.builtin.command: podman unshare chown -R 472:472 {{ home }}/appdata/{{ item }}
+  ansible.builtin.command: podman unshare chown -R {{ item.user }} {{ home }}/appdata/{{ item.folder }}
   loop:
-    - grafana
-    - prometheus
+    - { user: "472:472", folder: "grafana"}
+    - { user: "65534:65534", folder: "prometheus"}
   when:
     - folders.changed
 

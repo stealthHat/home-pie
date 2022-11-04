@@ -10,8 +10,18 @@
 #  become: true
 #  roles:
 #    - podman
-
-- name: RR stack role
+#
+#- name: RR stack role
+#  hosts: pi
+#  roles:
+#    - rr
+#
+#- name: monitoring stack role
+#  hosts: pi
+#  roles:
+#    - monitoring
+#
+- name: pi-hole stack role
   hosts: pi
   roles:
-    - rr
+    - pi-hole

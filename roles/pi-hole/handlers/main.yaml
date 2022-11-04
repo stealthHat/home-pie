@@ -1,0 +1,6 @@
+---
+- name: Enable pod-pihole.service
+  ansible.builtin.systemd:
+    name: pod-pihole.service
+    scope: user
+    enabled: true

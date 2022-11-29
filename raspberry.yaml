@@ -1,27 +1,27 @@
 ---
-#- name: Common role
-#  hosts: pi
-#  become: true
-#  roles:
-#    - common
-#
-#- name: Podman role
-#  hosts: pi
-#  become: true
-#  roles:
-#    - podman
-#
-#- name: RR stack role
-#  hosts: pi
-#  roles:
-#    - arr
-#
+- name: Common role
+  hosts: pi
+  become: true
+  roles:
+    - common
+
+- name: Podman role
+  hosts: pi
+  become: true
+  roles:
+    - podman
+
+- name: RR stack role
+  hosts: pi
+  roles:
+    - arr
+
 - name: monitoring stack role
   hosts: pi
   roles:
     - monitoring
 
-      #- name: pi-hole stack role
-      #  hosts: pi
-      #  roles:
-      #    - pi-hole
+- name: pi-hole stack role
+  hosts: pi
+  roles:
+    - pi-hole

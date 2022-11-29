@@ -4,6 +4,7 @@
     name: podman.socket
     state: started
     enabled: true
+    scope: user
 
 - name: Reboot the server
   ansible.builtin.reboot:

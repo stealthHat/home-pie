@@ -21,8 +21,8 @@
 
 - name: Create pod for containers
   containers.podman.podman_pod:
-    name: rr
-    infra_name: rr-infra
+    name: arr
+    infra_name: arr-infra
     ports:
       - 8096:8096 # jellyfin
       - 7359:7359/udp # jellyfin
@@ -31,14 +31,14 @@
       - 6767:6767 # bazarr
       - 9696:9696 # prowlarr
       - 8080:8080 # qbittorrent
-  notify: Enable pod-rr.service
+  notify: Enable pod-arr.service
 
 - name: Run jellyfin
   containers.podman.podman_container:
-    pod: rr
+    pod: arr
     name: jellyfin
     image: cr.hotio.dev/hotio/jellyfin:latest
-    restart_policy: always
+    restart_policy: unless-stopped
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -48,10 +48,10 @@
 
 - name: Run radarr
   containers.podman.podman_container:
-    pod: rr
+    pod: arr
     name: radarr
     image: cr.hotio.dev/hotio/radarr:latest
-    restart_policy: always
+    restart_policy: unless-stopped
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -60,10 +60,10 @@
 
 - name: Run sonarr
   containers.podman.podman_container:
-    pod: rr
+    pod: arr
     name: sonarr
     image: cr.hotio.dev/hotio/sonarr:latest
-    restart_policy: always
+    restart_policy: unless-stopped
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -72,10 +72,10 @@
 
 - name: Run bazarr
   containers.podman.podman_container:
-    pod: rr
+    pod: arr
     name: bazarr
     image: cr.hotio.dev/hotio/bazarr:latest
-    restart_policy: always
+    restart_policy: unless-stopped
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -84,10 +84,10 @@
 
 - name: Run prowlarr
   containers.podman.podman_container:
-    pod: rr
+    pod: arr
     name: prowlarr
     image: cr.hotio.dev/hotio/prowlarr:nightly
-    restart_policy: always
+    restart_policy: unless-stopped
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -95,10 +95,10 @@
 
 - name: Run qbittorrent
   containers.podman.podman_container:
-    pod: rr
+    pod: arr
     name: qbittorrent
     image: cr.hotio.dev/hotio/qbittorrent:latest
-    restart_policy: always
+    restart_policy: unless-stopped
     env:
       TZ: America/Sao_Paulo
     volume:
@@ -107,8 +107,8 @@
 
 - name: Create systemd file for pod and containers
   containers.podman.podman_pod:
-    name: rr
-    infra_name: rr-infra
+    name: arr
+    infra_name: arr-infra
     ports:
       - 8096:8096 # jellyfin
       - 7359:7359/udp # jellyfin
@@ -118,6 +118,6 @@
       - 9696:9696 # prowlarr
       - 8080:8080 # qbittorrent
     generate_systemd:
-      restart_policy: always
+      restart_policy: unless-stopped
       path:
         "{{ home }}/.config/systemd/user"

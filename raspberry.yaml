@@ -14,14 +14,14 @@
 #- name: RR stack role
 #  hosts: pi
 #  roles:
-#    - rr
+#    - arr
 #
-#- name: monitoring stack role
-#  hosts: pi
-#  roles:
-#    - monitoring
-#
-- name: pi-hole stack role
+- name: monitoring stack role
   hosts: pi
   roles:
-    - pi-hole
+    - monitoring
+
+      #- name: pi-hole stack role
+      #  hosts: pi
+      #  roles:
+      #    - pi-hole

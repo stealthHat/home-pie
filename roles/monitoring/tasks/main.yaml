@@ -12,8 +12,8 @@
 - name: Podman unshare
   ansible.builtin.command: podman unshare chown -R {{ item.user }} {{ home }}/appdata/{{ item.folder }}
   loop:
-    - { user: "472:472", folder: "grafana"}
-    - { user: "65534:65534", folder: "prometheus"}
+    - { user: "472:472", folder: "grafana" }
+    - { user: "65534:65534", folder: "prometheus" }
   when:
     - folders.changed
 
@@ -34,7 +34,8 @@
       - 9090:9090 # prometheus
       - 3000:3000 # grafana
       - 9100:9100 # node-exporter
-      - 8081:8080 # node-exporter
+      - 9101:9101 # podman-exporter
+      - 8081:8080 # cadvisor
   notify: Enable pod-monitoring.service
 
 - name: Run prometheus
@@ -67,6 +68,18 @@
     volumes:
       - "/:/host:ro,rslave"
 
+- name: Run podman-exporter
+  containers.podman.podman_container:
+    pod: monitoring
+    name: podman-exporter
+    image: docker.io/omnibrian/podman-exporter:latest
+    restart_policy: always
+    env:
+      CONTAINER_HOST: unix:///run/podman/podman.sock
+    security_opt: label=disable
+    volumes:
+      - "{{ lookup('ansible.builtin.env', 'XDG_RUNTIME_DIR') }}/podman/podman.sock:/run/podman/podman.sock"
+
 # https://github.com/google/cadvisor/issues/2424
 - name: Run cadvisor
   containers.podman.podman_container:
@@ -91,7 +104,8 @@
       - 9090:9090 # prometheus
       - 3000:3000 # grafana
       - 9100:9100 # node-exporter
-      - 8081:8080 # node-exporter
+      - 9101:9101 # podman-exporter
+      - 8081:8080 # cadvisor
     generate_systemd:
       restart_policy: always
       path: "{{ home }}/.config/systemd/user"
